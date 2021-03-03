@@ -1,0 +1,120 @@
+###Python
+
+from collections import defaultdict
+
+mainDicticionary=defaultdict(list)
+stateDictionary=defaultdict(list)
+countScoreDictionary=defaultdict(int)
+sumScoreDictionary=defaultdict(int)
+meanScoreDictionary=defaultdict(int)
+
+n = 0
+with open('/Users/timothyfisher/Desktop/Ernst Lab/UNIX/overlapsComparisonValues.bed', 'r') as dictList:
+     for line in dictList:
+        chromosome, start, end, state, score, strand, signal, end2, color = line.strip().split()
+        score = int(score)
+        
+        stateDictionary[state].append(score)
+      
+        n += 1
+      
+with open('/Users/timothyfisher/Desktop/Ernst Lab/R-Studio/plotting_4_project/output.csv', 'w') as outfile:
+    for state in stateDictionary:
+        countScoreDictionary[state] = len(stateDictionary[state])
+        sumScoreDictionary[state]= sum(stateDictionary[state])
+        meanScoreDictionary[state]= sumScoreDictionary[state]/countScoreDictionary[state]
+        mainDicticionary[state].append(stateDictionary)
+        mainDicticionary[state].append(countScoreDictionary)
+        mainDicticionary[state].append(sumScoreDictionary)
+        mainDicticionary[state].append(meanScoreDictionary)
+        outfile.write(state+','+str(meanScoreDictionary[state])+'\n')
+    
+
+print(countScoreDictionary.items())
+
+print (meanScoreDictionary.items())
+
+
+
+
+
+###R-Studio using ggplots
+setwd("~/Desktop/Ernst Lab/R-Studio/plotting_4_project")
+firstbar<-read.csv('output.csv')
+head(firstbar)
+
+#load raw data into R- Studios
+overlaps <- read.csv("output.csv", header = F)
+View(overlaps)
+temp <- overlaps
+temp$correctedV1 <- gsub('_', ' ', temp$V1)
+head(temp)
+library(gtools)
+temp <- temp[mixedorder(temp$correctedV1),]
+temp$correctedV1 <- factor(temp$correctedV1, levels=(mixedsort(temp$correctedV1)))
+
+std_errs <- read_delim("~/Desktop/Ernst Lab/Python/big_project/std_errs.tsv", 
+                       +     "\t", escape_double = FALSE, col_names = FALSE, 
+                       +     trim_ws = TRUE)
+View(std_errs)
+
+
+
+len <- read.csv("../../Python/big_project/length.csv", header = F)
+View(len())
+
+library(ggplot2)
+colors = c(rgb(255,0,0, maxColorValue = 255), rgb(255,69,0, maxColorValue = 255), rgb(255,69,0, maxColorValue = 255), rgb(255,69,0, maxColorValue = 255), rgb(0,128,0, maxColorValue = 255), rgb(0,128,0, maxColorValue = 255), rgb(0,128,0, maxColorValue = 255), rgb(0,150,0, maxColorValue = 255), rgb(194,225,5, maxColorValue = 255), rgb(194,225,5, maxColorValue = 255), rgb(194,225,5, maxColorValue = 255), rgb(194,225,5, maxColorValue = 255), rgb(255,195,77, maxColorValue = 255), rgb(255,195,77, maxColorValue = 255), rgb(255,195,77, maxColorValue = 255), rgb(255,255,0, maxColorValue = 255), rgb(255,255,0, maxColorValue = 255), rgb(255,255,0, maxColorValue = 255), rgb(255,255,102, maxColorValue = 255), rgb(102,205,170, maxColorValue = 255), rgb(138,145,208, maxColorValue = 255), rgb(230,184,183, maxColorValue = 255), rgb(112,48,160, maxColorValue = 255), rgb(128,128,128, maxColorValue = 255), rgb(255,255,255, maxColorValue = 255))
+library(Hmisc)
+ggplot(temp, aes(x=correctedV1, y=V2, fill=correctedV1)) +
+  geom_histogram(stat='identity') +
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=temp$V2-std_errs$X2, ymax=temp$V2+std_errs$X2), 
+                width=.2, 
+                position=position_dodge(.9)) +
+  scale_fill_manual(values = colors) +
+  theme_bw() +
+  labs(x='Chromatin State', y='Score', title='Expression Scores for CRISPR Dataset') +
+  theme(axis.title = element_text(size=16)) +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  ggsave('~/Desktop/somebargraph.pdf', height=6, width=7)
+  
+
+
+
+
+
+
+###UNIX Shell
+
+#Redirecting narrowpeak files to bed files. Did this for all narrowpeakfiles
+cat GSM2545391_SKBR3_B2.narrowPeak > GSM2545391_SKBR3.B2.bed
+
+#Intersecting the ChromHMM files with the narrowpeak files to identify the overlaps
+intersectBed -a E123_25_imputed12marks_dense.bed -b GSM2545390_SKBR3_B1.bed GSM2545391_SKBR3_B2.bed GSM2545392_SKBR3_B3.bed > overlaps.bed
+
+#Putting each overlapping region in the same row. 
+intersectBed -a E123_25_imputed12marks_dense.bed -b GSM2545390_SKBR3_B1.bed GSM2545391_SKBR3_B2.bed GSM2545392_SKBR3_B3.bed -wa -wb > overlapsComparison.bed 
+
+#Keeping the chromHMM dataset but with its respective scores and signal values.
+awk {'print $1,$2,$3,$4,$15,$6,$17,$8,$9'} overlapsComparison.bed > overlapsComparisonValues.bed
+
+#To delete the spaces and make each column tab delimited.
+sed 's/ /	/g' overlapsComparisonValues.bed > overlapsComparisonValues.tabs.bed
+
+
+#To convert jupyter notebook files, such as .ipynb or .py 
+python meanScoreDictionary.py >> meanScoreDictionary.bed
+
+
+
+###.bash_profile in UNIX
+#added by Anaconda3 4.4.0 installer
+export PATH="/Users/timothyfisher/anaconda3/bin:$PATH"
+
+export BROWSER=open
+
+
+
+
