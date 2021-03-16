@@ -11,7 +11,7 @@ CRISPR-Cas9 based epigenetic regulatory element screening (CERES) is an assay th
 
 The poster from 2017 UCLA BIG SUMMER Conference:
 
-<img src="https://github.com/timothyfisherphd/CRISPR_Cancer_Chromatin_State_Activity/blob/main/2017_BIG_Poster_TimFisher.pdf" align="center">
+<img src="https://github.com/timothyfisherphd/CRISPR_Cancer_Chromatin_State_Activity/blob/main/2017_BIG_Poster_TimFisher.jpg" align="center">
 
  ## Contact
 For questions, please contact: Timothy B. Fisher (tfisher10@student.gsu.edu)
